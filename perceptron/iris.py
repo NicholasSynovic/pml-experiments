@@ -34,6 +34,5 @@ perceptron.fit(X=transformedXTrain, y=yTrain)
 
 prediction: ndarray = perceptron.predict(X=transformedXTest)
 
-
 print(f"Missed examples: {(yTest != prediction).sum()}")
 print(f"Accuracy : {accuracy_score(yTest, prediction) * 100}%")
