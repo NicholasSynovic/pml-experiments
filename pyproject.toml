@@ -6,8 +6,13 @@ authors = ["Nicholas M. Synovic <nicholas.synovic@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+numpy = "^1.22.4"
+pandas = "^1.4.2"
+matplotlib = "^3.5.2"
 
 [tool.poetry.dev-dependencies]
+black = "^22.3.0"
+isort = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
