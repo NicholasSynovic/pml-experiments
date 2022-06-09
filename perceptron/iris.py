@@ -1,6 +1,4 @@
-from typing import Any
-
-from numpy import bincount, ndarray
+from numpy import ndarray
 from sklearn import datasets
 from sklearn.linear_model import Perceptron
 from sklearn.metrics import accuracy_score
@@ -26,18 +24,16 @@ xTrain, xTest, yTrain, yTest = train_test_split(
     xData, yData, test_size=0.3, random_state=1, stratify=yData
 )
 
-print(f"Y data label count: {bincount(yData)}")
-print(f"Y training data label count: {bincount(yTrain)}")
-print(f"Y testing label count: {bincount(yTest)}")
-
 sc: StandardScaler = StandardScaler()
 sc.fit(X=xTrain)
-transformedXTrain: Any = sc.transform(X=xTrain)
-transformedXTest: Any = sc.transform(X=xTest)
+transformedXTrain: ndarray = sc.transform(X=xTrain)
+transformedXTest: ndarray = sc.transform(X=xTest)
 
 perceptron: Perceptron = Perceptron(eta0=0.1, random_state=1)
 perceptron.fit(X=transformedXTrain, y=yTrain)
 
-prediction: Any = perceptron.predict(X=transformedXTest)
+prediction: ndarray = perceptron.predict(X=transformedXTest)
 
+
+print(f"Missed examples: {(yTest != prediction).sum()}")
 print(f"Accuracy : {accuracy_score(yTest, prediction) * 100}%")
