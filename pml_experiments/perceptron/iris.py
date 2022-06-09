@@ -1,38 +1,57 @@
-from numpy import ndarray
 from sklearn import datasets
-from sklearn.linear_model import Perceptron
-from sklearn.metrics import accuracy_score
+from pandas import DataFrame
+from sklearn.utils._bunch import Bunch
+from pandas import Series
+from numpy import ndarray, stack
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils._bunch import Bunch
+from sklearn.linear_model import Perceptron
+from sklearn.metrics import accuracy_score
 
-iris: Bunch = datasets.load_iris()
+def loadIrisDataset()   ->  DataFrame:
+    iris: Bunch = datasets.load_iris(as_frame=True)
+    data: DataFrame = iris.data
+    target: Series = iris.target
+    data["target"] = target
+    return data
 
-sepalLengthIndex: int = 0
-sepalWidthIndex: int = 1
-petalLengthIndex: int = 2
-petalWidthIndex: int = 3
+def dropTarget(data: DataFrame, target: int) ->  DataFrame:
+    return data[data["target"] != target].reset_index(drop=True)
 
-xData: ndarray = iris.data[:, [petalLengthIndex, petalWidthIndex]]
-yData: ndarray = iris.target
+def splitData(data: DataFrame, attribute1_Index: int, attribut2_Index: int, testSize: float = 0.3)    ->  tuple[ndarray, ndarray, ndarray, ndarray]:
+    a1: ndarray = data[data.columns[attribute1_Index]].to_numpy()
+    a2: ndarray = data[data.columns[attribut2_Index]].to_numpy()
 
-xTrain: ndarray
-xTest: ndarray
-yTrain: ndarray
-yTest: ndarray
-xTrain, xTest, yTrain, yTest = train_test_split(
-    xData, yData, test_size=0.3, random_state=1, stratify=yData
-)
+    x: ndarray = stack((a1, a2), axis=1)
+    y: ndarray = data["target"].to_numpy()
 
-sc: StandardScaler = StandardScaler()
-sc.fit(X=xTrain)
-transformedXTrain: ndarray = sc.transform(X=xTrain)
-transformedXTest: ndarray = sc.transform(X=xTest)
+    xTrain: ndarray
+    xTest: ndarray
+    yTrain: ndarray
+    yTest: ndarray
+    xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=testSize, random_state=1, stratify=y)
 
-perceptron: Perceptron = Perceptron(eta0=0.1, random_state=1)
-perceptron.fit(X=transformedXTrain, y=yTrain)
+    return (xTrain, xTest, yTrain, yTest)
 
-prediction: ndarray = perceptron.predict(X=transformedXTest)
+def transformData(xTrain: ndarray, xTest:ndarray)   ->  tuple[ndarray, ndarray]:
+    sc: StandardScaler = StandardScaler()
+    sc.fit(X=xTrain)
 
-print(f"Missed examples: {(yTest != prediction).sum()}")
-print(f"Accuracy : {accuracy_score(yTest, prediction) * 100}%")
+    transformedTrain: ndarray = sc.transform(X=xTrain)
+    transformedTest: ndarray = sc.transform(X=xTest)
+
+    return (transformedTrain, transformedTest)
+
+def main()  ->  None:
+    df: DataFrame = loadIrisDataset()
+    df = dropTarget(data = df, target = 0)
+    dataSets: tuple = splitData(data=df, attribute1_Index=0, attribut2_Index=1)
+    transformedData: tuple = transformData(xTrain=dataSets[0], xTest=dataSets[1])
+    ppn: Perceptron = Perceptron(eta0=0.1, random_state=1)
+    ppn.fit(X=transformedData[0], y=dataSets[2])
+    ppn: ndarray = ppn.predict(X=transformedData[1])
+
+    print(f"Accuracy: {accuracy_score(y_true=dataSets[3], y_pred=ppn) * 100}%")
+
+if __name__ == "__main__":
+    main()
